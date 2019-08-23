@@ -161,6 +161,8 @@ int work(
     // Let the client decide what we should do...
     std::getline(std::cin, cmd);
 
+    std::cout << "command: " << cmd << std::endl;
+
     if (cmd == "stop")
     {
       break;
@@ -277,6 +279,8 @@ int work(
       fprintf(stderr, "unknown command %s\n", cmd.c_str());
     }
   }
+
+  std::cout << "out of loop..." << std::to_string(::getpid()) << std::endl;
 }
 
 struct FileDeleter
