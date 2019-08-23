@@ -26,6 +26,8 @@ class Kaldi:
         self.finished = False
 
     def _cmd(self, c):
+        if self._p.poll() is not None:
+            return
         self._p.stdin.write(("%s\n" % (c)).encode())
         self._p.stdin.flush()
 
@@ -33,8 +35,8 @@ class Kaldi:
 
         commfd = open('comm_{}'.format(self._p.pid), 'wb')
         written = commfd.write(buf) #arr.tostring())
-        commfd.flush();
-        commfd.close();
+        commfd.flush()
+        commfd.close()
 
         self._cmd("push-chunk")
         cnt = int(len(buf)/2)
@@ -47,6 +49,11 @@ class Kaldi:
         self._cmd("get-final")
         words = []
         while True:
+
+            # break if process has exited
+            if self._p.poll() is not None:
+                break
+
             line = self._p.stdout.readline().decode()
             if line.startswith("done"):
                 break
@@ -73,7 +80,9 @@ class Kaldi:
     def stop(self):
         if not self.finished:
             self.finished = True
-            self._cmd("stop")
+            poll = self._p.poll()
+            if poll is None:
+                self._cmd("stop")
             self._p.stdin.close()
             self._p.stdout.close()
             self._p.wait()
